@@ -1,0 +1,52 @@
+import network
+import socket
+import machine
+
+# --- Setup GPIO (LED on pin 2 for ESP32/ESP8266) ---
+led = machine.Pin(2, machine.Pin.OUT)
+
+# --- Setup Access Point ---
+ap = network.WLAN(network.AP_IF)
+ap.active(True)
+ap.config(essid="My_MicroPython_AP", password="12345678")
+
+print("Access Point started")
+print("SSID:", ap.config("essid"))
+print("IP address:", ap.ifconfig()[0])
+
+# --- Load HTML template from file ---
+def load_html():
+    with open("index.html", "r") as f:
+        return f.read()
+
+# --- Simple Web Server ---
+addr = socket.getaddrinfo("0.0.0.0", 80)[0][-1]
+s = socket.socket()
+s.bind(addr)
+s.listen(1)
+
+print("Web server listening on:", addr)
+
+while True:
+    cl, client_addr = s.accept()
+    print("Client connected from", client_addr)
+
+    request = cl.recv(1024).decode()
+    print("Request:", request)
+
+    # Handle GPIO control
+    if "/led/on" in request:
+        led.value(1)
+    elif "/led/off" in request:
+        led.value(0)
+
+    # Load HTML
+    html = load_html()
+    # Insert LED state dynamically
+    state = "ON" if led.value() else "OFF"
+    html = html.replace("{{LED_STATE}}", state)
+
+    # Send response
+    cl.send("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n")
+    cl.send(html)
+    cl.close()
