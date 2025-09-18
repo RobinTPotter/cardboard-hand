@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ESP/PicoW Sliders</title>
+  <style>
+    body { font-family: Arial; margin: 40px; }
+    .slider-container { margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <h1>WebSocket Sliders</h1>
+  <p>Move sliders to send values (0–180) to board.</p>
+
+  <div class="slider-container">
+    <label>Slider 1: <span id="val1">90</span></label><br>
+    <input type="range" min="0" max="180" value="90" id="s1">
+  </div>
+  <div class="slider-container">
+    <label>Slider 2: <span id="val2">90</span></label><br>
+    <input type="range" min="0" max="180" value="90" id="s2">
+  </div>
+  <div class="slider-container">
+    <label>Slider 3: <span id="val3">90</span></label><br>
+    <input type="range" min="0" max="180" value="90" id="s3">
+  </div>
+  <div class="slider-container">
+    <label>Slider 4: <span id="val4">90</span></label><br>
+    <input type="range" min="0" max="180" value="90" id="s4">
+  </div>
+  <div class="slider-container">
+    <label>Slider 5: <span id="val5">90</span></label><br>
+    <input type="range" min="0" max="180" value="90" id="s5">
+  </div>
+
+  <script>
+    const ws = new WebSocket("ws://" + location.hostname + ":8080");
+    function setupSlider(id, label) {
+      const s = document.getElementById(id);
+      const v = document.getElementById(label);
+      s.style.writingMode = "vertical-lr"
+      s.oninput = () => {
+        v.innerText = s.value;
+        ws.send(id + ":" + s.value);
+      };
+    }
+    setupSlider("s1", "val1");
+    setupSlider("s2", "val2");
+    setupSlider("s3", "val3");
+    setupSlider("s4", "val4");
+    setupSlider("s5", "val5");
+  </script>
+</body>
+</html>

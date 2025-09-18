@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP Web Server</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 50px; }
+        button { font-size: 20px; padding: 10px 20px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>ESP Web Server (AP Mode)</h1>
+    <p>LED is currently: <b>{{LED_STATE}}</b></p>
+    <p>
+        <a href="/led/on"><button>Turn ON</button></a>
+        <a href="/led/off"><button>Turn OFF</button></a>
+    </p>
+</body>
+</html>
