@@ -14,8 +14,10 @@ each joint was scored
 
 each joint used paper straw (superglue) and hair bands used for digit extesion. each joint has a tiny securing node at the top reverse to secure the band.
 
+_17-9-25_
+
 ![construction pic](./images/holder.jpg)
 ![construction pic](./images/inplace.jpg)
 
-housing for servos. will likely need securing better
+housing for servos. will likely need securing better. should get the other 2 on the other side. not sure yet where or how to mount the "wrist".
 
