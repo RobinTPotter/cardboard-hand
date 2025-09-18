@@ -21,3 +21,5 @@ _17-9-25_
 
 housing for servos. will likely need securing better. should get the other 2 on the other side. not sure yet where or how to mount the "wrist".
 
+added some code from chatgpt and https://docs.micropython.org/en/latest/esp32/quickref.html
+
