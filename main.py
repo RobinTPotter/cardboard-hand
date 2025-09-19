@@ -1,47 +1,126 @@
-import network, uasyncio as asyncio
-from ws_helpers import websocket_handshake, websocket_recv, websocket_send
+import uasyncio as asyncio
+import ujson
+import network
+import ubinascii
+import uhashlib
+from ws_helpers import ws_recv_frame, ws_send_frame
 
-# --- Access Point ---
-ap = network.WLAN(network.AP_IF)
-ap.config(essid="Slider_AP", password="12345678")
-ap.active(True)
-print("AP started at", ap.ifconfig()[0])
+CONFIG_FILE = "config.json"
 
-# --- HTTP + WebSocket handler ---
-async def client_handler(reader, writer):
-    request = await reader.read(1024)
-    req_str = request.decode()
+# ----------------------------
+# Config save/load
+# ----------------------------
+def save_config(data):
+    try:
+        with open(CONFIG_FILE, "w") as f:
+            ujson.dump(data, f)
+        print("Config saved")
+    except Exception as e:
+        print("Config save failed:", e)
 
-    if "Upgrade: websocket" in req_str:
-        # WebSocket handshake
-        response = websocket_handshake(req_str)
-        await writer.awrite(response)
+def load_config():
+    try:
+        with open(CONFIG_FILE, "r") as f:
+            return ujson.load(f)
+    except:
+        return {}
 
-        # Handle incoming WebSocket messages
+# ----------------------------
+# HTTP + WebSocket handler
+# ----------------------------
+async def handle_client(reader, writer):
+    try:
+        # HTTP request line
+        req = await reader.readline()
+        if not req:
+            await writer.aclose()
+            return
+
+        # Read headers
+        headers = {}
         while True:
-            msg = await websocket_recv(reader)
-            if msg is None:
+            line = await reader.readline()
+            if line == b"\r\n":
                 break
-            print("Slider update:", msg)   # e.g. "s2:145"
-            # Optionally reply
-            await websocket_send(writer, "ACK:" + msg)
+            parts = line.decode().split(":", 1)
+            if len(parts) == 2:
+                headers[parts[0].strip()] = parts[1].strip()
 
-    else:
-        # Serve HTML page
+        # WebSocket upgrade
+        if "Upgrade" in headers and headers["Upgrade"].lower() == "websocket":
+            key = headers.get("Sec-WebSocket-Key", "")
+            sha1 = uhashlib.sha1(key.encode() + b"258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
+            accept = ubinascii.b2a_base64(sha1.digest()).strip().decode()
+            resp = (
+                "HTTP/1.1 101 Switching Protocols\r\n"
+                "Upgrade: websocket\r\n"
+                "Connection: Upgrade\r\n"
+                "Sec-WebSocket-Accept: " + accept + "\r\n\r\n"
+            )
+            await writer.awrite(resp)
+
+            # Send saved config to client
+            cfg = load_config()
+            if cfg:
+                await ws_send_frame(writer, "init:" + ujson.dumps(cfg))
+
+            # WebSocket loop
+            while True:
+                msg = await ws_recv_frame(reader)
+                if msg is None:
+                    break
+                if msg.startswith("init:"):
+                    try:
+                        data = ujson.loads(msg[5:])
+                        print("Init values:", data)
+                        save_config(data)
+                    except Exception as e:
+                        print("Bad init JSON:", e)
+                else:
+                    print("Realtime update:", msg)
+
+            await writer.aclose()
+
+        else:
+            # Serve HTML
+            try:
+                with open("index.html") as f:
+                    html = f.read()
+                resp = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" + html
+            except:
+                resp = "HTTP/1.0 404 NOT FOUND\r\n\r\n"
+            await writer.awrite(resp)
+            await writer.aclose()
+
+    except Exception as e:
+        print("Client error:", e)
         try:
-            with open("index.html") as f:
-                html = f.read()
+            await writer.aclose()
         except:
-            html = "<h1>No index.html found</h1>"
-        response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n" + html
-        await writer.awrite(response)
-    await writer.aclose()
+            pass
 
-# --- Run server ---
+# ----------------------------
+# Main
+# ----------------------------
 async def main():
-    server = await asyncio.start_server(client_handler, "0.0.0.0", 80)
-    print("Server listening on 80")
-    await server.wait_closed()
+    # Start AP
+    ap = network.WLAN(network.AP_IF)
+    ap.active(True)
+    ap.config(essid="My_MicroPython_AP", password="12345678")
+    print("AP running at:", ap.ifconfig())
 
-asyncio.run(main())
+    # Load config
+    cfg = load_config()
+    if cfg:
+        print("Restored config:", cfg)
 
+    # Start server
+    srv = await asyncio.start_server(handle_client, "0.0.0.0", 80)
+    print("Listening on 0.0.0.0:80")
+    await srv.wait_closed()
+
+# Run
+try:
+    asyncio.run(main())
+except KeyboardInterrupt:
+    print("Server stopped")

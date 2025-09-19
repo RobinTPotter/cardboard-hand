@@ -1,45 +1,34 @@
-import ubinascii, uhashlib
+import ustruct as struct
 
-# Perform handshake
-def websocket_handshake(request):
-    for line in request.split("\r\n"):
-        if "Sec-WebSocket-Key" in line:
-            key = line.split(":")[1].strip()
-            break
-    magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-    sha1 = uhashlib.sha1(key.encode() + magic.encode())
-    accept = ubinascii.b2a_base64(sha1.digest()).strip().decode()
-    response = (
-        "HTTP/1.1 101 Switching Protocols\r\n"
-        "Upgrade: websocket\r\n"
-        "Connection: Upgrade\r\n"
-        f"Sec-WebSocket-Accept: {accept}\r\n\r\n"
-    )
-    return response
-
-# Decode a WebSocket frame into text
-async def websocket_recv(reader):
+async def ws_recv_frame(reader):
+    """Receive one WebSocket frame and return its decoded text payload."""
     hdr = await reader.read(2)
     if not hdr:
         return None
-    length = hdr[1] & 0x7F
+    length = hdr[1] & 127
     if length == 126:
         ext = await reader.read(2)
+        length = int.from_bytes(ext, "big")
+    elif length == 127:
+        ext = await reader.read(8)
         length = int.from_bytes(ext, "big")
     mask = await reader.read(4)
     enc_payload = await reader.read(length)
     payload = bytes(b ^ mask[i % 4] for i, b in enumerate(enc_payload))
     return payload.decode()
 
-# Encode + send a WebSocket text frame
-async def websocket_send(writer, msg):
+async def ws_send_frame(writer, msg):
+    """Send a text WebSocket frame."""
     payload = msg.encode()
-    frame = bytearray([0x81])  # FIN + text frame
+    hdr = bytearray([0x81])  # FIN + text frame
     length = len(payload)
     if length < 126:
-        frame.append(length)
+        hdr.append(length)
+    elif length < (1 << 16):
+        hdr.append(126)
+        hdr.extend(struct.pack("!H", length))
     else:
-        frame.append(126)
-        frame.extend(length.to_bytes(2, "big"))
-    frame.extend(payload)
-    await writer.awrite(frame)
+        hdr.append(127)
+        hdr.extend(struct.pack("!Q", length))
+    writer.write(hdr + payload)
+    await writer.drain()
