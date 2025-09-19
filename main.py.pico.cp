@@ -1,0 +1,77 @@
+#import network
+import socket
+import machine
+
+
+
+# import wifi module
+import wifi
+
+# set access point credentials
+ap_ssid = "circuitpython-pickme"
+ap_password = "b0ll0ck5!"
+
+# You may also need to enable the wifi radio with wifi.radio.enabled(true)
+
+# configure access point
+wifi.radio.start_ap(ssid=ap_ssid, password=ap_password)
+
+#"""
+#start_ap arguments include: ssid, password, channel, authmode, and max_connections
+#"""
+
+# print access point settings
+#print("Access point created with SSID: {}, password: {}".format(ap_ssid, ap_password))
+
+# print IP address
+print("My IP address is", wifi.radio.ipv4_address)
+
+
+# --- Setup GPIO (LED is on-board, controlled differently on Pico W) ---
+led = machine.Pin("LED", machine.Pin.OUT)
+
+# --- Setup Access Point ---
+#ap = network.WLAN(network.AP_IF)
+#ap.config(essid="PicoW_AP", password="12345678")
+#ap.active(True)
+
+#print("Access Point started")
+#print("SSID:", ap.config("essid"))
+#print("IP address:", ap.ifconfig()[0])
+
+# --- Load HTML template from file ---
+def load_html():
+    with open("index.html", "r") as f:
+        return f.read()
+
+# --- Simple Web Server ---
+addr = socket.getaddrinfo("0.0.0.0", 80)[0][-1]
+s = socket.socket()
+s.bind(addr)
+s.listen(1)
+
+print("Web server listening on:", addr)
+
+while True:
+    cl, client_addr = s.accept()
+    print("Client connected from", client_addr)
+
+    request = cl.recv(1024).decode()
+    print("Request:", request)
+
+    # Handle LED control
+    if "/led/on" in request:
+        led.value(1)
+    elif "/led/off" in request:
+        led.value(0)
+
+    # Load HTML and replace state
+    html = load_html()
+    state = "ON" if led.value() else "OFF"
+    html = html.replace("{{LED_STATE}}", state)
+
+    # Send response
+    cl.send("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n")
+    cl.send(html)
+    cl.close()
+
