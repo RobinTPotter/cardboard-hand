@@ -67,9 +67,9 @@ async def handle_client(reader, writer):
                 if msg is None:
                     break
 
-                if msg.startswith("init:"):
+                if msg.startswith("reinit:"):
                     try:
-                        data = ujson.loads(msg[5:])
+                        data = ujson.loads(msg[7:])
                         print("Init values:", data)
                         save_config(data)
                     except Exception as e:
@@ -82,6 +82,17 @@ async def handle_client(reader, writer):
             try:
                 with open("index.html") as f:
                     html = f.read()
+                with open("slider.html") as f:
+                    slider = f.read()
+
+                sliders = "\n".join([slider.replace("s1",f"s{s}") for s in range(2,6)])
+                html = html.replace("<!-- rest1 -->", sliders)
+                sliders = "\n".join(["""setupSlider("s1", "val1");
+setupSlider("s1min", "s1valmin");
+setupSlider("s1max", "s1valmax");
+""".replace("s1", f"s{s}") for s in range(2,6)])
+                html = html.replace("<!-- rest2 -->", sliders)
+
                 resp = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" + html
             except:
                 resp = "HTTP/1.0 404 NOT FOUND\r\n\r\n"
