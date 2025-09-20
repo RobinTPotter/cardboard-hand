@@ -1,75 +1,96 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ESP/PicoW Sliders</title>
+  <meta charset="utf-8" />
+  <title>Slider Control</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
-    .sliders { display: flex; justify-content: center; gap: 40px; margin-top: 20px; }
-    .slider-container { display: flex; flex-direction: column; align-items: center; }
-    input[type=range] { writing-mode: bt-lr; -webkit-appearance: slider-vertical; width: 30px; height: 200px; }
-    input[type=text] { width: 50px; margin: 2px; text-align: center; }
-    .val { display: inline-block; width: 40px; text-align: right; }
-    .extra-sliders { margin-top: 10px; display: none; }
-    .extra-sliders input[type=range] { width: 120px; }
-    .switch { margin-top: 20px; }
-    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+    body { font-family: sans-serif; margin: 20px; }
+    .slider-container { display: flex; gap: 20px; }
+    .vertical-slider { writing-mode: bt-lr; transform: rotate(270deg); width: 150px; }
+    .hidden { display: none; }
+    .extras { margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h1>WebSocket Sliders</h1>
-  <p>Move sliders to send values (0–180) to board.</p>
+  <h1>Control Panel</h1>
 
-  <div class="switch">
-    <label><input type="checkbox" id="extraToggle"> Show extra sliders</label>
-  </div>
-
-  <button id="initBtn">Send Init Values</button>
-
-  <div class="sliders">
-    <!-- Repeat slider-container for s1..s5, same structure as before -->
-    <!-- For brevity, only s1 shown; copy/paste for s2..s5 changing IDs -->
-    <div class="slider-container" id="sc1">
-      <input type="range" min="0" max="180" value="90" id="s1">
-      <label>Slider 1: <span class="val" id="val1">90</span></label>
-      <div>Min: <input type="text" id="s1minTxt" value="0"> Max: <input type="text" id="s1maxTxt" value="180"></div>
-      <div class="extra-sliders">
-        <label>Min Range <input type="range" min="0" max="1000" value="500" id="s1min"></label><br>
-        <label>Max Range <input type="range" min="1000" max="3000" value="2000" id="s1max"></label>
+  <label><input type="checkbox" id="extraToggle"> Show Extra Sliders</label>
+  <div class="slider-container">
+    <div id="s1container">
+      <input type="range" id="s1" class="vertical-slider" min="0" max="180" value="90">
+      <div>Value: <span id="val1">90</span></div>
+      <input type="number" id="s1minTxt" value="0"> - <input type="number" id="s1maxTxt" value="180">
+      <div class="extras hidden">
+        <input type="range" id="s1min" min="0" max="1000" value="500">
+        <input type="range" id="s1max" min="1000" max="3000" value="2000">
       </div>
     </div>
+    <!-- Repeat for s2..s5 -->
   </div>
+
+  <button id="initBtn">Save Init</button>
 
   <script>
     const ws = new WebSocket("ws://" + location.hostname + "/ws");
 
-    // Restore sliders/textboxes from server config
     ws.onmessage = (event) => {
       const msg = event.data;
       if (msg.startsWith("init:")) {
         const data = JSON.parse(msg.slice(5));
-        for (let i=1;i<=5;i++){
+        console.log("Restoring config:", data);
+        for (let i=1; i<=5; i++) {
           const slider = document.getElementById("s"+i);
           const valSpan = document.getElementById("val"+i);
           const minTxt = document.getElementById("s"+i+"minTxt");
           const maxTxt = document.getElementById("s"+i+"maxTxt");
 
-          if(data["s"+i]!==undefined){ slider.value=data["s"+i]; valSpan.innerText=data["s"+i]; }
-          if(data["s"+i+"minTxt"]!==undefined){ minTxt.value=data["s"+i+"minTxt"]; slider.min=data["s"+i+"minTxt"]; }
-          if(data["s"+i+"maxTxt"]!==undefined){ maxTxt.value=data["s"+i+"maxTxt"]; slider.max=data["s"+i+"maxTxt"]; }
-          if(data["s"+i+"min"]!==undefined) document.getElementById("s"+i+"min").value=data["s"+i+"min"];
-          if(data["s"+i+"max"]!==undefined) document.getElementById("s"+i+"max").value=data["s"+i+"max"];
+          if (data["s"+i] !== undefined) {
+            slider.value = data["s"+i];
+            valSpan.innerText = data["s"+i];
+          }
+          if (data["s"+i+"minTxt"] !== undefined) {
+            minTxt.value = data["s"+i+"minTxt"];
+            slider.min = data["s"+i+"minTxt"];
+          }
+          if (data["s"+i+"maxTxt"] !== undefined) {
+            maxTxt.value = data["s"+i+"maxTxt"];
+            slider.max = data["s"+i+"maxTxt"];
+          }
+          if (data["s"+i+"min"] !== undefined)
+            document.getElementById("s"+i+"min").value = data["s"+i+"min"];
+          if (data["s"+i+"max"] !== undefined)
+            document.getElementById("s"+i+"max").value = data["s"+i+"max"];
         }
       }
     };
 
-    function setupSlider(id,label){ const s=document.getElementById(id); const v=document.getElementById(label);
-      s.oninput=()=>{ v.innerText=s.value; ws.send(id+":"+s.value); }; }
-    ["s1","s2","s3","s4","s5"].forEach((s,i)=>setupSlider(s,"val"+(i+1)));
-    function setupExtra(id){ const s=document.getElementById(id); s.oninput=()=>{ ws.send(id+":"+s.value); }; }
-    ["s1min","s1max","s2min","s2max","s3min","s3max","s4min","s4max","s5min","s5max"].forEach(setupExtra);
+    function setupSlider(id) {
+      const slider = document.getElementById(id);
+      const valSpan = document.getElementById("val"+id.slice(1));
+      slider.oninput = () => {
+        valSpan.innerText = slider.value;
+        ws.send(id + ":" + slider.value);
+      };
+    }
+    for (let i=1;i<=5;i++) setupSlider("s"+i);
 
-    document.getElementById("extraToggle").onchange=(e)=>{ document.querySelectorAll(".extra-sliders").forEach(div=>div.style.display=e.target.checked?"block":"none"); };
+    document.getElementById("extraToggle").onchange = (e) => {
+      document.querySelectorAll(".extras").forEach(div => {
+        div.classList.toggle("hidden", !e.target.checked);
+      });
+    };
 
-    for(let i=1;i<=5;i++){ const slider=document.getElementById("s"+i); const minBox=document.getElementById("s"+i+"minTxt"); const maxBox=document.getElementById("s"+i+"maxTxt");
-      minBox.onchange=()=>slider
-
+    document.getElementById("initBtn").onclick = () => {
+      const data = {};
+      for (let i=1;i<=5;i++) {
+        data["s"+i] = document.getElementById("s"+i).value;
+        data["s"+i+"min"] = document.getElementById("s"+i+"min").value;
+        data["s"+i+"max"] = document.getElementById("s"+i+"max").value;
+        data["s"+i+"minTxt"] = document.getElementById("s"+i+"minTxt").value;
+        data["s"+i+"maxTxt"] = document.getElementById("s"+i+"maxTxt").value;
+      }
+      ws.send("init:" + JSON.stringify(data));
+    };
+  </script>
+</body>
+</html>

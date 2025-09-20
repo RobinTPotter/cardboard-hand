@@ -2,6 +2,7 @@ import uasyncio as asyncio
 import ujson
 import network
 import ubinascii
+import usocket as socket
 import uhashlib
 from ws_helpers import ws_recv_frame, ws_send_frame
 
@@ -30,25 +31,22 @@ def load_config():
 # ----------------------------
 async def handle_client(reader, writer):
     try:
-        # HTTP request line
         req = await reader.readline()
         if not req:
             await writer.aclose()
             return
 
-        # Read headers
         headers = {}
         while True:
             line = await reader.readline()
             if line == b"\r\n":
                 break
-            parts = line.decode().split(":", 1)
-            if len(parts) == 2:
-                headers[parts[0].strip()] = parts[1].strip()
+            k, v = line.decode().split(":", 1)
+            headers[k.strip()] = v.strip()
 
-        # WebSocket upgrade
         if "Upgrade" in headers and headers["Upgrade"].lower() == "websocket":
             key = headers.get("Sec-WebSocket-Key", "")
+            import ubinascii, uhashlib
             sha1 = uhashlib.sha1(key.encode() + b"258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
             accept = ubinascii.b2a_base64(sha1.digest()).strip().decode()
             resp = (
@@ -64,11 +62,11 @@ async def handle_client(reader, writer):
             if cfg:
                 await ws_send_frame(writer, "init:" + ujson.dumps(cfg))
 
-            # WebSocket loop
             while True:
                 msg = await ws_recv_frame(reader)
                 if msg is None:
                     break
+
                 if msg.startswith("init:"):
                     try:
                         data = ujson.loads(msg[5:])
@@ -80,9 +78,7 @@ async def handle_client(reader, writer):
                     print("Realtime update:", msg)
 
             await writer.aclose()
-
         else:
-            # Serve HTML
             try:
                 with open("index.html") as f:
                     html = f.read()
@@ -100,26 +96,22 @@ async def handle_client(reader, writer):
             pass
 
 # ----------------------------
-# Main
+# Main entry point
 # ----------------------------
 async def main():
-    # Start AP
     ap = network.WLAN(network.AP_IF)
     ap.active(True)
     ap.config(essid="My_MicroPython_AP", password="12345678")
     print("AP running at:", ap.ifconfig())
 
-    # Load config
     cfg = load_config()
     if cfg:
         print("Restored config:", cfg)
 
-    # Start server
     srv = await asyncio.start_server(handle_client, "0.0.0.0", 80)
     print("Listening on 0.0.0.0:80")
     await srv.wait_closed()
 
-# Run
 try:
     asyncio.run(main())
 except KeyboardInterrupt:
