@@ -75,10 +75,12 @@ async def handle_client(reader, writer):
                         data = ujson.loads(msg[7:])
                         print("Init values:", data)
                         save_config(data)
+                        reinitialize(data)
                     except Exception as e:
                         print("Bad init JSON:", e)
                 else:
                     print("Realtime update:", msg)
+                    realtime_update(msg)
 
             await writer.aclose()
         else:
@@ -120,6 +122,15 @@ setupSlider("s1max", "s1valmax");
             await writer.aclose()
         except:
             pass
+
+
+def reinitialize(data):
+    print("reinitializing...")
+    print(data)
+
+def realtime_updaet(msg):
+    print("updating...")
+    print(msg)
 
 # ----------------------------
 # Main entry point
