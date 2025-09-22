@@ -6,27 +6,9 @@ import usocket as socket
 import uhashlib
 from ws_helpers import ws_recv_frame, ws_send_frame
 from update import *
+from config import *
 
-CONFIG_FILE = "config.json"
 print("hello")
-
-# ----------------------------
-# Config save/load
-# ----------------------------
-def save_config(data):
-    try:
-        with open(CONFIG_FILE, "w") as f:
-            ujson.dump(data, f)
-        print("Config saved")
-    except Exception as e:
-        print("Config save failed:", e)
-
-def load_config():
-    try:
-        with open(CONFIG_FILE, "r") as f:
-            return ujson.load(f)
-    except:
-        return {}
 
 # ----------------------------
 # HTTP + WebSocket handler
