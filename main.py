@@ -7,6 +7,7 @@ import uhashlib
 from ws_helpers import ws_recv_frame, ws_send_frame
 
 CONFIG_FILE = "config.json"
+print("hello")
 
 # ----------------------------
 # Config save/load
@@ -57,6 +58,7 @@ async def handle_client(reader, writer):
             )
             await writer.awrite(resp)
 
+            print("about to load config")
             # Send saved config to client
             cfg = load_config()
             if cfg:
@@ -67,6 +69,7 @@ async def handle_client(reader, writer):
                 if msg is None:
                     break
 
+                #print(msg[:min(len(msg),10)])
                 if msg.startswith("reinit:"):
                     try:
                         data = ujson.loads(msg[7:])
@@ -80,20 +83,32 @@ async def handle_client(reader, writer):
             await writer.aclose()
         else:
             try:
+                print("opening index")
                 with open("index.html") as f:
                     html = f.read()
+                print("opening slider")
                 with open("slider.html") as f:
                     slider = f.read()
 
                 sliders = "\n".join([slider.replace("s1",f"s{s}") for s in range(2,6)])
                 html = html.replace("<!-- rest1 -->", sliders)
-                sliders = "\n".join(["""setupSlider("s1", "val1");
+                print("t1")
+
+                sliders = "\n".join(["""setupSlider("s1", "s1val");
 setupSlider("s1min", "s1valmin");
 setupSlider("s1max", "s1valmax");
 """.replace("s1", f"s{s}") for s in range(2,6)])
+                print("t2")
                 html = html.replace("<!-- rest2 -->", sliders)
 
-                resp = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" + html
+
+
+                await writer.awrite("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n")
+
+
+                for i in range(0, len(html), 512):
+                    await writer.awrite(html[i:i+512])
+                await writer.drain()
             except:
                 resp = "HTTP/1.0 404 NOT FOUND\r\n\r\n"
             await writer.awrite(resp)

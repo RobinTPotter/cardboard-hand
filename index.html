@@ -3,12 +3,7 @@
 <head>
   <title>ESP/PicoW Sliders</title>
   <style>
-.hidden {
-  display: none;
-}
-
-
-
+    .hidden { display: none; }
     body {
       font-family: Arial, sans-serif;
       margin: 10px;
@@ -49,7 +44,6 @@
   <p>Move sliders to send values (0-180) to board.</p>
   <label><input type="checkbox" id="extraToggle"> Show Extra Sliders</label>
   <div class="sliders">
-
     <div class="slider-container">
       <input type="range" class="vert" min="0" max="180" value="90" id="s1">
       <label>1: <span class="val" id="s1val">90</span></label>
@@ -65,11 +59,9 @@
       </div>
     </div>
     <!-- rest1 -->
-
   </div>
   <br />
   <input onclick="reinit()" type="button" id="reinit" />
-
   <script>
     const ws = new WebSocket("ws://" + location.hostname + "/ws");
     function setupSlider(id, label) {
@@ -80,31 +72,32 @@
         ws.send(id + ":" + s.value);
       };
     }
-
-    setupSlider("s1", "val1");
+    setupSlider("s1", "s1val");
     setupSlider("s1min", "s1valmin");
     setupSlider("s1max", "s1valmax");
     <!-- rest2 -->
-
-
     function update(id,prop,val) {
       var e = document.getElementById(id);
-      e.setAttribute(prop, val);
-     
+      e.setAttribute(prop, val);     
     }
     document.getElementById("extraToggle").onchange = (e) => {
       document.querySelectorAll(".extras").forEach(div => {
         div.classList.toggle("hidden", !e.target.checked);
       });
     };
-    function reinit() {
+    function reinit() {           
+
+
       data = {};
       document.querySelectorAll("input").forEach(inp => {
         data[inp.id] = inp.value;
       });
-      //alert(JSON.stringify(data));
-      ws.send("reinit:" + data);
+             
+      ws.send("reinit:" +     JSON.stringify(data));
+
     };
+
+
   </script>
 </body>
 </html>
