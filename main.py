@@ -5,6 +5,7 @@ import ubinascii
 import usocket as socket
 import uhashlib
 from ws_helpers import ws_recv_frame, ws_send_frame
+from update import *
 
 CONFIG_FILE = "config.json"
 print("hello")
@@ -85,28 +86,22 @@ async def handle_client(reader, writer):
             await writer.aclose()
         else:
             try:
-                print("opening index")
                 with open("index.html") as f:
                     html = f.read()
-                print("opening slider")
+
                 with open("slider.html") as f:
                     slider = f.read()
 
                 sliders = "\n".join([slider.replace("s1",f"s{s}") for s in range(2,6)])
                 html = html.replace("<!-- rest1 -->", sliders)
-                print("t1")
 
                 sliders = "\n".join(["""setupSlider("s1", "s1val");
 setupSlider("s1min", "s1valmin");
 setupSlider("s1max", "s1valmax");
 """.replace("s1", f"s{s}") for s in range(2,6)])
-                print("t2")
                 html = html.replace("<!-- rest2 -->", sliders)
 
-
-
                 await writer.awrite("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n")
-
 
                 for i in range(0, len(html), 512):
                     await writer.awrite(html[i:i+512])
@@ -122,15 +117,6 @@ setupSlider("s1max", "s1valmax");
             await writer.aclose()
         except:
             pass
-
-
-def reinitialize(data):
-    print("reinitializing...")
-    print(data)
-
-def realtime_updaet(msg):
-    print("updating...")
-    print(msg)
 
 # ----------------------------
 # Main entry point
