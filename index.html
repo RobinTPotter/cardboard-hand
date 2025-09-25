@@ -86,18 +86,12 @@
       });
     };
     function reinit() {           
-
-
       data = {};
       document.querySelectorAll("input").forEach(inp => {
         data[inp.id] = inp.value;
       });
-             
       ws.send("reinit:" +     JSON.stringify(data));
-
     };
-
-
   </script>
 </body>
 </html>
