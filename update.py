@@ -22,4 +22,5 @@ def realtime_update(msg):
     n = int(lk[1])
     rest = "".join(lk[2:])
     if len(rest)==0 and s=="s":
+        print((n,value))
         servos[n].set_angle(int(value))

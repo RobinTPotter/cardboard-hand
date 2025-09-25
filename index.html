@@ -61,7 +61,7 @@
     <!-- rest1 -->
   </div>
   <br />
-  <input onclick="reinit()" type="button" id="reinit" />
+  <button onclick="reinit()" id="reinit">Re-Init</button>
   <script>
     const ws = new WebSocket("ws://" + location.hostname + "/ws");
     function setupSlider(id, label) {

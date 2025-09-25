@@ -1,3 +1,4 @@
+import sys
 import uasyncio as asyncio
 import ujson
 import network
@@ -90,11 +91,13 @@ setupSlider("s1max", "s1valmax");
                 await writer.drain()
             except:
                 resp = "HTTP/1.0 404 NOT FOUND\r\n\r\n"
-            await writer.awrite(resp)
+                await writer.awrite(resp)
+
             await writer.aclose()
 
     except Exception as e:
         print("Client error:", e)
+        sys.print_exception(e)
         try:
             await writer.aclose()
         except:
