@@ -23,3 +23,9 @@ housing for servos. will likely need securing better. should get the other 2 on 
 
 added some code from chatgpt and https://docs.micropython.org/en/latest/esp32/quickref.html
 
+_26-9-25_
+
+![construction pic](./images/hand-circuit.jpg)
+
+esp32s arrived, code complete or thereabouts. hotspot and page http://192.168.4.1/
+
