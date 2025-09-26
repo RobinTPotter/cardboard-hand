@@ -25,9 +25,14 @@ added some code from chatgpt and https://docs.micropython.org/en/latest/esp32/qu
 
 _26-9-25_
 
-![construction pic](./images/hand-circuit.jpg)
+![construction pic](./images/board.jpg)
 
 esp32s arrived, code complete or thereabouts. hotspot and page http://192.168.4.1/
+
+![construction pic](./images/flash1.jpg)
+![construction pic](./images/flash2.jpg)
+
+esptool is used to flash rom and install the micropython binary
 
 had to install mpremote. commands are:
 
@@ -39,3 +44,5 @@ mpremote connect /dev/ttyUSB0
 repl appears `ctrl+d` to run `main.py`
 
 reset button is quicker
+
+![construction pic](./images/hand-circuit.jpg)
