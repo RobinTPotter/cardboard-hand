@@ -35,9 +35,9 @@ class Servo:
 
 # Create 5 servo objects
 servos = {
-    1:Servo(18),  # pin 18
-    2:Servo(5),   # pin 5
-    3:Servo(17),  # pin 17
-    4:Servo(16),  # pin 16
-    5:Servo(4),   # pin 4
+    1:Servo(19),   # pin 19
+    2:Servo(18),  # pin 18
+    3:Servo(5),   # pin 5
+    4:Servo(17),  # pin 17
+    5:Servo(16),  # pin 16
 }
