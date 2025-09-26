@@ -45,4 +45,8 @@ repl appears `ctrl+d` to run `main.py`
 
 reset button is quicker
 
+![construction pic](./images/finger.mp4)
+
+next:
+
 ![construction pic](./images/hand-circuit.jpg)
