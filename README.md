@@ -29,3 +29,13 @@ _26-9-25_
 
 esp32s arrived, code complete or thereabouts. hotspot and page http://192.168.4.1/
 
+had to install mpremote. commands are:
+
+```
+mpremote fs cp *html *py :
+mpremote connect /dev/ttyUSB0
+```
+
+repl appears `ctrl+d` to run `main.py`
+
+reset button is quicker
