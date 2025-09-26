@@ -52,9 +52,9 @@
         <input onchange="update('s1','max', this.value)" style="width:40px" type="number" id="s1maxTxt" value="180">
       </div>
       <div class="extras hidden">
-        <input type="range" id="s1min" min="150" max="1000" value="250"><span class="val" id="s1valmin">90</span>
+        <input type="range" id="s1min" min="150" max="350" value="250"><span class="val" id="s1valmin">90</span>
         <br />
-        <input type="range" id="s1max" min="1800" max="3000" value="2700"><span class="val" id="s1valmax">90</span>
+        <input type="range" id="s1max" min="1800" max="3200" value="2500"><span class="val" id="s1valmax">90</span>
         <br />
       </div>
     </div>
@@ -92,6 +92,28 @@
       });
       ws.send("reinit:" +     JSON.stringify(data));
     };
+
+
+
+    ws.onmessage = (event) => {
+      const msg = event.data;
+      console.log("Received:", msg);
+
+      // Simple command handling
+      if (msg.startsWith("init:")) {
+        const data = JSON.parse(msg.slice(5));
+        for (var n=1;n++;n<6) {
+          document.getElementById(`s${n}min`).value = data[`s${n}min`];
+          document.getElementById(`s${n}max`).value = data[`s${n}max`];
+        }
+      }
+    };
+
+
+
+
+
+
   </script>
 </body>
 </html>
