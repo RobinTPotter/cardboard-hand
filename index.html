@@ -59,9 +59,12 @@
       </div>
     </div>
     <!-- rest1 -->
+    <div class="extras hidden">
+      <button onclick="reinit()" id="reinit">Re-Init</button>
+      <button onclick="centre()" id="centre">Centre</button>
+    </div>
   </div>
   <br />
-  <button onclick="reinit()" id="reinit">Re-Init</button>
   <script>
     const ws = new WebSocket("ws://" + location.hostname + "/ws");
     function setupSlider(id, label) {
@@ -91,6 +94,12 @@
         data[inp.id] = inp.value;
       });
       ws.send("reinit:" +     JSON.stringify(data));
+    };
+    function centre() {           
+      data = {};
+      document.querySelectorAll("input.vert").forEach(inp => {
+        ws.send(inp.id + ":" + (parseInt(inp.min,10) + (inp.max - inp.min)/2))
+      });
     };
 
 

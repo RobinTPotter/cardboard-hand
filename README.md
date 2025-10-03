@@ -50,3 +50,10 @@ reset button is quicker
 next:
 
 ![construction pic](./images/hand-circuit.jpg)
+
+_1-10-25_
+
+![construction pic](./images/complete.jpg)
+
+![construction pic](./images/solder.jpg)
+
