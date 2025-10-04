@@ -1,14 +1,17 @@
-    <div class="slider-container">
-      <input type="range" class="vert" min="0" max="180" value="90" id="s1">
-      <label>1: <span class="val" id="s1val">90</span></label>
-      <div class="extras hidden">
-        <input onchange="update('s1','min', this.value)" style="width:40px" type="number" id="s1minTxt" value="0">
-        <input onchange="update('s1','max', this.value)" style="width:40px" type="number" id="s1maxTxt" value="180">
-      </div>
-      <div class="extras hidden">
-        <input type="range" id="s1min" min="150" max="350" value="250"><span class="val" id="s1valmin">90</span>
-        <br />
-        <input type="range" id="s1max" min="1800" max="3200" value="2500"><span class="val" id="s1valmax">90</span>
-        <br />
+    <div class="slider-group" id="group_s1">
+      <!-- content from slider.html inserted here -->
+        <input type="range" class="vert" min="0" max="180" value="90" id="s1">
+        <label>Pos: <span class="val" id="s1val">90</span></label>
+        <div class="extras hidden">
+          <input onchange="update('s1','min', this.value)" style="width:40px" type="number" id="s1minTxt" value="0">
+          <input onchange="update('s1','max', this.value)" style="width:40px" type="number" id="s1maxTxt" value="180">
+        </div>
+        <div class="extras hidden">
+          <input type="range" id="s1min" min="150" max="350" value="250"><span class="val" id="s1valmin">90</span>
+          <br />
+          <input type="range" id="s1max" min="1800" max="3200" value="2500"><span class="val" id="s1valmax">90</span>
+          <br />
+        </div>
+        <button class="expand-btn">Expand</button>
       </div>
     </div>
