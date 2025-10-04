@@ -1,4 +1,8 @@
 import machine
+if "Pin" not in dir(machine):
+    print("Using dummy machine")
+    import dummymachine
+    machine = dummymachine
 
 class Pin:
     OUT = 0
