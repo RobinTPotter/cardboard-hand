@@ -127,6 +127,7 @@ async def main():
         print("Restored config:", cfg)
 
     srv = await asyncio.start_server(handle_client, "0.0.0.0", 8000)
+    srv = await asyncio.start_server(handle_client, "0.0.0.0", 80)
     print("Listening on 0.0.0.0:8000")
     await srv.wait_closed()
 

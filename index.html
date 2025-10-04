@@ -12,7 +12,8 @@
     .sliders {
       display: flex;
       justify-content: center;
-      gap: 40px;  /* space between sliders */
+      //align-content: center;
+      //gap: 1px;  /* space between sliders */
     }
     .slider-container {
       display: flex;
@@ -47,9 +48,13 @@
     }
 
 .slider-group.fullscreen {
-  transform: scale(2.5); /* make it 150% larger */
+  transform: scale(2.2); /* make it 150% larger */
   transform-origin: top center;
   overflow: auto;
+  
+  position: absolute;
+  top: 20px;
+  left: 100px;
 }
 
 
@@ -66,7 +71,7 @@
       padding: 20px;
       box-sizing: border-box;
     }
-                                                                                .slider-group .back-btn {
+    .slider-group .back-btn {
       display: none;
       position: absolute;
       top: 10px;
@@ -100,7 +105,7 @@
           <input type="range" id="s1max" min="2000" max="2500" value="2230"><span class="val" id="s1valmax">90</span>
           <br />
         </div>
-        <button class="expand-btn">Expand</button>
+        <button class="expand-btn">&#8689;</button>
       </div>
     </div>
     <!-- rest1 -->
@@ -145,6 +150,8 @@
       data = {};
       document.querySelectorAll("input.vert").forEach(inp => {
         ws.send(inp.id + ":" + (parseInt(inp.min,10) + (inp.max - inp.min)/2))
+        inp.value = (parseInt(inp.min,10) + (inp.max - inp.min)/2);
+        document.getElementById(inp.id + "val").innerText = inp.value;
       });
     };
 
@@ -169,8 +176,9 @@ document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll(".slider-group").forEach(group => {
         // Create a back button
         const backBtn = document.createElement("button");
-        backBtn.innerText = "Back";
+        backBtn.innerText = "\u2b11";
         backBtn.classList.add("back-btn");
+        backBtn.style.fontSize = "0.25em";
         group.appendChild(backBtn);
 
         // Expand button (you may already have one in slider.html)
