@@ -119,21 +119,6 @@
   <br />
   <script>
     const ws = new WebSocket("ws://" + location.hostname + ":8000/ws");
-    function throttle(func, delay) {
-        let lastCall = 0;
-        return function(...args) {
-            const now = Date.now();
-            if (now - lastCall >= delay) {
-                console.log(now - lastCall)
-                lastCall = now;
-                func(...args);
-            } else {
-                console.log("dunk")
-            }
-        }
-    }
-
-
     function setupSlider(id, label) {
       const s = document.getElementById(id);
       const v = document.getElementById(label);

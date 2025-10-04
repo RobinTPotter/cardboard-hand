@@ -87,7 +87,6 @@ async def handle_client(reader, writer):
                         except Exception as e:
                             print("Bad init JSON:", e)
                     else:
-                        #print("Realtime update:", msg)
                         realtime_update(msg)
             except Exception as e:
                 print("WebSocket error:", e)
