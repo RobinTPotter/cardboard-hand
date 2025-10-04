@@ -112,7 +112,7 @@
     </div>
   <br />
   <script>
-    const ws = new WebSocket("ws://" + location.hostname + "/ws");
+    const ws = new WebSocket("ws://" + location.hostname + ":8000/ws");
     function setupSlider(id, label) {
       const s = document.getElementById(id);
       const v = document.getElementById(label);

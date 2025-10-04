@@ -1,4 +1,28 @@
 import machine
+
+class Pin:
+    OUT = 0
+    IN = 0
+    def __init__(self,n, d):
+        pass
+
+class PWM:
+    def __init__(self,a):
+        pass
+    def freq(self,f):
+        pass
+    def duty_ns(self,d):
+        pass
+    def deinit(self):
+        pass
+
+if "Pin" not in dir(machine):
+    setattr(machine, "Pin", Pin)
+
+if "PWM" not in dir(machine):
+    setattr(machine, "PWM", PWM)
+
+print(dir(machine))
 import time
 
 class Servo:

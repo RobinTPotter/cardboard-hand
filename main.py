@@ -1,7 +1,11 @@
 import sys
 import uasyncio as asyncio
 import ujson
-import network
+try:
+    import network
+except:
+    print("no network")
+
 import ubinascii
 import usocket as socket
 import uhashlib
@@ -48,25 +52,28 @@ async def handle_client(reader, writer):
             if cfg:
                 await ws_send_frame(writer, "init:" + ujson.dumps(cfg))
 
-            while True:
-                msg = await ws_recv_frame(reader)
-                if msg is None:
-                    break
+            try:
+                while True:
+                    msg = await ws_recv_frame(reader)
+                    if msg is None:
+                        break
 
-                #print(msg[:min(len(msg),10)])
-                if msg.startswith("reinit:"):
-                    try:
-                        data = ujson.loads(msg[7:])
-                        print("Init values:", data)
-                        save_config(data)
-                        reinitialize(data)
-                    except Exception as e:
-                        print("Bad init JSON:", e)
-                else:
-                    print("Realtime update:", msg)
-                    realtime_update(msg)
-
-            await writer.aclose()
+                    #print(msg[:min(len(msg),10)])
+                    if msg.startswith("reinit:"):
+                        try:
+                            data = ujson.loads(msg[7:])
+                            print("Init values:", data)
+                            save_config(data)
+                            reinitialize(data)
+                        except Exception as e:
+                            print("Bad init JSON:", e)
+                    else:
+                        print("Realtime update:", msg)
+                        realtime_update(msg)
+            except Exception as e:
+                print("WebSocket error:", e)
+            finally:
+                await writer.aclose()
         else:
             try:
                 with open("index.html") as f:
@@ -107,17 +114,20 @@ setupSlider("s1max", "s1valmax");
 # Main entry point
 # ----------------------------
 async def main():
-    ap = network.WLAN(network.AP_IF)
-    ap.active(True)
-    ap.config(essid="My_MicroPython_AP", password="12345678")
-    print("AP running at:", ap.ifconfig())
+    try:
+        ap = network.WLAN(network.AP_IF)
+        ap.active(True)
+        ap.config(essid="My_MicroPython_AP", password="12345678")
+        print("AP running at:", ap.ifconfig())
+    except Exception as e:
+        print("No network:", e)
 
     cfg = load_config()
     if cfg:
         print("Restored config:", cfg)
 
-    srv = await asyncio.start_server(handle_client, "0.0.0.0", 80)
-    print("Listening on 0.0.0.0:80")
+    srv = await asyncio.start_server(handle_client, "0.0.0.0", 8000)
+    print("Listening on 0.0.0.0:8000")
     await srv.wait_closed()
 
 try:
