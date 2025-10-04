@@ -57,3 +57,10 @@ _1-10-25_
 
 ![construction pic](./images/solder.jpg)
 
+_4-10-25_
+
+trying to get set up so ui will at least run 
+
+podman run -it --rm -v %cd%:/work -p 8000:80 -w /work docker.io/micropython/unix bash -c "micropython main.py"
+
+sort of works but need to check esp32 again
