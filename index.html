@@ -12,7 +12,8 @@
     .sliders {
       display: flex;
       justify-content: center;
-      gap: 40px;  /* space between sliders */
+      //align-content: center;
+      //gap: 1px;  /* space between sliders */
     }
     .slider-container {
       display: flex;
@@ -37,6 +38,51 @@
       width: 40px;   /* reserve space so numbers don’t shift */
       text-align: right;
     }
+
+    .slider-group {
+      border: 1px solid #ccc;
+      margin: 10px;
+      padding: 10px;
+      position: relative;
+      background: #fafafa;
+    }
+
+.slider-group.fullscreen {
+  transform: scale(2.2); /* make it 150% larger */
+  transform-origin: top center;
+  overflow: auto;
+  
+  position: absolute;
+  top: 20px;
+  left: 100px;
+}
+
+
+    .slider-group.oldfullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
+      background: white;
+      overflow-y: auto;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .slider-group .back-btn {
+      display: none;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10000;
+    }
+
+    .slider-group.fullscreen .back-btn {
+      display: block;
+    }
+
   </style>
 </head>
 <body>
@@ -45,28 +91,48 @@
   <label><input type="checkbox" id="extraToggle"> Show Extra Sliders</label>
   <div class="sliders">
     <div class="slider-container">
-      <input type="range" class="vert" min="0" max="180" value="90" id="s1">
-      <label>1: <span class="val" id="s1val">90</span></label>
-      <div class="extras hidden">
-        <input onchange="update('s1','min', this.value)" style="width:40px" type="number" id="s1minTxt" value="0">
-        <input onchange="update('s1','max', this.value)" style="width:40px" type="number" id="s1maxTxt" value="180">
-      </div>
-      <div class="extras hidden">
-        <input type="range" id="s1min" min="150" max="350" value="250"><span class="val" id="s1valmin">90</span>
-        <br />
-        <input type="range" id="s1max" min="1800" max="3200" value="2500"><span class="val" id="s1valmax">90</span>
-        <br />
+      <div class="slider-group" id="group_s1">
+      <!-- content from slider.html inserted here -->
+        <input type="range" class="vert" min="0" max="180" value="90" id="s1">
+        <label>Pos: <span class="val" id="s1val">90</span></label>
+        <div class="extras hidden">
+          <input onchange="update('s1','min', this.value)" style="width:40px" type="number" id="s1minTxt" value="0">
+          <input onchange="update('s1','max', this.value)" style="width:40px" type="number" id="s1maxTxt" value="180">
+        </div>
+        <div class="extras hidden">
+          <input type="range" id="s1min" min="150" max="350" value="250"><span class="val" id="s1valmin">90</span>
+          <br />
+          <input type="range" id="s1max" min="2000" max="2500" value="2230"><span class="val" id="s1valmax">90</span>
+          <br />
+        </div>
+        <button class="expand-btn">&#8689;</button>
       </div>
     </div>
     <!-- rest1 -->
+  </div>
+    <br />
     <div class="extras hidden">
       <button onclick="reinit()" id="reinit">Re-Init</button>
       <button onclick="centre()" id="centre">Centre</button>
     </div>
-  </div>
   <br />
   <script>
-    const ws = new WebSocket("ws://" + location.hostname + "/ws");
+    const ws = new WebSocket("ws://" + location.hostname + ":8000/ws");
+    function throttle(func, delay) {
+        let lastCall = 0;
+        return function(...args) {
+            const now = Date.now();
+            if (now - lastCall >= delay) {
+                console.log(now - lastCall)
+                lastCall = now;
+                func(...args);
+            } else {
+                console.log("dunk")
+            }
+        }
+    }
+
+
     function setupSlider(id, label) {
       const s = document.getElementById(id);
       const v = document.getElementById(label);
@@ -99,6 +165,8 @@
       data = {};
       document.querySelectorAll("input.vert").forEach(inp => {
         ws.send(inp.id + ":" + (parseInt(inp.min,10) + (inp.max - inp.min)/2))
+        inp.value = (parseInt(inp.min,10) + (inp.max - inp.min)/2);
+        document.getElementById(inp.id + "val").innerText = inp.value;
       });
     };
 
@@ -109,17 +177,51 @@
       console.log("Received:", msg);
 
       // Simple command handling
-      if (msg.startsWith("init:")) {
-        const data = JSON.parse(msg.slice(5));
-        for (var n=1;n++;n<6) {
-          document.getElementById(`s${n}min`).value = data[`s${n}min`];
-          document.getElementById(`s${n}max`).value = data[`s${n}max`];
-        }
+      if (msg.startsWith("init:") | msg.startsWith("update:")) {
+        const data = JSON.parse(msg.slice(1+msg.indexOf(":")));
+        for (var k in data) { 
+            if ( k.indexOf("val")>-1) {
+              document.getElementById(k).innerHTML = data[k]
+            } else if ( k.indexOf("Txt")>-1) {
+              document.getElementById(k).innerHTML = data[k]
+            } else {
+              document.getElementById(k).value = data[k]
+            }
+        } 
       }
     };
 
 
+document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll(".slider-group").forEach(group => {
+        // Create a back button
+        const backBtn = document.createElement("button");
+        backBtn.innerText = "\u2b11";
+        backBtn.classList.add("back-btn");
+        backBtn.style.fontSize = "0.25em";
+        group.appendChild(backBtn);
 
+        // Expand button (you may already have one in slider.html)
+        const expandBtn = group.querySelector(".expand-btn");
+        if (expandBtn) {
+          expandBtn.addEventListener("click", () => {
+            group.classList.add("fullscreen");
+            // Optionally hide other groups while fullscreen
+            document.querySelectorAll(".slider-group").forEach(g => {
+              if (g !== group) g.style.display = "none";
+            });
+          });
+        }
+
+        backBtn.addEventListener("click", () => {
+          group.classList.remove("fullscreen");
+          // Restore display of other groups
+          document.querySelectorAll(".slider-group").forEach(g => {
+            g.style.display = "";
+          });
+        });
+      });
+    });
 
 
 
