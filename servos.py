@@ -1,4 +1,5 @@
 import machine
+import time
 
 if "Pin" not in dir(machine):
     print("Using dummy machine")
@@ -27,8 +28,6 @@ if "Pin" not in dir(machine):
 if "PWM" not in dir(machine):
     setattr(machine, "PWM", PWM)
 
-import time
-
 class Servo:
     def __init__(self, pin_num, freq=50):
         self.pin = machine.Pin(pin_num, machine.Pin.OUT)
@@ -38,7 +37,7 @@ class Servo:
         self.min = 250
         self.max = 2230
         self.time_buffer = 100
-        self.last_update = None
+        self.last_time = 0
 
     def set_us(self, us):
         """Set pulse width in microseconds (usually 500–2500)."""
@@ -58,13 +57,12 @@ class Servo:
     def set_angle(self, angle):
         now = time.ticks_ms()
         angle = int(angle)
-        if not self.last_update or (self.last_update + self.time_buffer) < now:
+        if (self.last_time + self.time_buffer) < now:
+            self.last_time = now
             self.angle = angle
-            self.last_update = now
             self.update()
         else:
-            test = now - (self.last_update + self.time_buffer)
-            print(f"time buffer protection {test}")
+            print("swallowed")
 
     def release(self):
         self.pwm.deinit()
